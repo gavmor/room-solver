@@ -18,4 +18,4 @@ The original plan (Grasshopper + [Monoceros](https://github.com/subdgtl/Monocero
 
 **Open design question carried into the design doc, not resolved here:** WFC's entropy-minimization + random tie-breaking is a random walk through a latent space that may be exhaustively delineable via constraint solving. Given CP-SAT is available in-process anyway, should the "collapse" step still be stochastic WFC, or should CP-SAT (exhaustive enumeration / an objective function) replace random collapse — or some hybrid? See the design doc for the reasoned answer.
 
-See the [wiki](../../wiki) for the WFC/CSP theory, the Revit-native architecture, CP-SAT, and why Grasshopper/Monoceros/Prolog are no longer primary.
+See [docs/DESIGN.md](docs/DESIGN.md) for the full outside-in design (UI → solver core), including the reasoned WFC-vs-CP-SAT collapse decision. See the [wiki](../../wiki) for the WFC/CSP theory, the Revit-native architecture, CP-SAT, and why Grasshopper/Monoceros/Prolog are no longer primary.
