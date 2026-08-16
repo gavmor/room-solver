@@ -1,5 +1,7 @@
 # Grasshopper
 
+**Superseded 2026-08-16.** room-solver pivoted to a Revit-native, in-process architecture (see [[Revit]]) — no Rhino/Grasshopper license, no second app for enterprise IT to approve. This page is kept for historical context on why Grasshopper was the original target and what specifically no longer applies; do not treat anything below as current project direction.
+
 ## What it is
 
 Grasshopper is the visual/algorithmic scripting environment built into [Rhino](https://www.rhino3d.com/) (Rhinoceros 3D). Instead of writing sequential code, you wire together **components** (nodes) into a **definition** (graph): each component takes typed inputs, does one job, and produces typed outputs that feed downstream components. It's the dominant visual-scripting tool in architecture/computational-design practice, which is why it's this project's primary target platform, with [[Monoceros]] as the WFC engine running inside it.

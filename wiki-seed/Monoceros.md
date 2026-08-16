@@ -1,5 +1,7 @@
 # Monoceros
 
+**Superseded 2026-08-16.** room-solver pivoted away from Grasshopper entirely (see [[Revit]]) — WFC is now reimplemented natively in C# rather than depending on this plugin. This page is kept for historical context on the module/slot/rule vocabulary, which is still a useful reference for the native reimplementation's data model; do not treat the "distribution/licensing" or "targets Grasshopper" framing below as current.
+
 ## What it is
 
 Monoceros is a free/open-source [[Grasshopper]] plugin for Rhino that implements [[WFC|Wave Function Collapse]] as a modular assembly tool, built by [Subdigital](https://sub.digital/) (studio of Ján Pernecký and collaborators). It's aimed at architects and designers assembling discrete modules (rooms, structural bays, building blocks, urban fragments) according to adjacency rules, rather than at texture/level generation.

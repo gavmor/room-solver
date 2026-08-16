@@ -1,5 +1,9 @@
 # Prolog / CLP(FD)
 
+## Status: BLOCKED under the current worst-case IT-lockdown assumption (2026-08-16)
+
+room-solver pivoted to a Revit-native, in-process add-in targeting an enterprise environment with locked-down application provisioning (see [[Revit]]). Under the worst-case assumption stated there (no local admin, AppLocker/WDAC blocking unsigned binaries, no outbound network), **both SWI-Prolog/GNU Prolog and Clingo (Answer Set Programming) are blocked** — neither has a managed .NET-native runtime; both require a native binary/runtime running as a separate process, which the in-process-only architecture rules out. This is a genuine capability loss versus the tradeoffs discussed below, not a silent drop — flagging it explicitly so it can be revisited: if IT grants an exception for a signed, sandboxed native subprocess, or the lockdown posture turns out looser than worst-case, this page's original recommendation becomes viable again. [[CP-SAT]] (Google OR-Tools, official C# bindings, runs in-process) is the current substitute constraint-solver core.
+
 ## What it is
 
 Prolog is a logic-programming language: you declare facts and rules, and the runtime searches for variable assignments (via unification and backtracking) that satisfy them. **CLP(FD)** ("Constraint Logic Programming over Finite Domains") is a Prolog extension/library (available in SWI-Prolog, GNU Prolog, and others) that adds first-class support for declaring variables with finite integer domains and constraints between them (`X #= Y + 1`, `all_different/1`, etc.), with efficient constraint propagation baked into the runtime instead of relying on Prolog's plain backtracking search.
@@ -24,7 +28,9 @@ Prolog is a logic-programming language: you declare facts and rules, and the run
 - Monoceros already models the module/slot/rule vocabulary architects think in; re-expressing that as raw CLP(FD) constraints is more implementation work up front, even if the propagation underneath ends up more robust.
 - WFC's frequency-weighted random selection (not just "any satisfying assignment") is central to getting organic-feeling layouts; CLP(FD)'s default labeling strategies optimize for finding *a* solution, not for weighted-random aesthetic variety — that would need custom labeling heuristics.
 
-**Recommendation for this project**: prefer the Grasshopper/Monoceros path as primary (see [[Grasshopper]], [[Monoceros]]) since it matches the target workflow and users; keep Prolog/CLP(FD) in reserve as the fallback if Monoceros' rule/constraint expressiveness turns out to be too limited for real architectural requirements (room adjacency *plus* programmatic requirements like square-footage minimums, egress paths, etc.).
+**Original recommendation (superseded 2026-08-16)**: prefer the Grasshopper/Monoceros path as primary since it matched the then-target workflow and users; keep Prolog/CLP(FD) in reserve as the fallback if Monoceros' rule/constraint expressiveness turned out to be too limited. That recommendation no longer applies now that Grasshopper/Monoceros are dropped entirely (see [[Grasshopper]], [[Monoceros]]).
+
+**Current status**: blocked under the in-process-only pivot (see top of page). [[CP-SAT]] covers the "richer than adjacency rules" expressiveness gap this page originally worried about (square-footage bounds, reified adjacency, `NoOverlap2D`) without needing a native runtime — but CP-SAT's default search doesn't have CLP(FD)'s decades of general-purpose backtracking-search maturity, so if CP-SAT modeling turns out to be insufficient for some architectural constraint, revisit whether an IT exception for a sandboxed Prolog/Clingo subprocess is worth pursuing rather than assuming CP-SAT is a strict superset.
 
 ## Key gotchas / links
 

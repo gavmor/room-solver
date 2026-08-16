@@ -26,13 +26,33 @@ Gumin's original WFC operates on pixel/voxel tiles for texture and level generat
 - Tiles become **modules**: room types, wall segments, doors, corridors — each with explicit connector/socket definitions on each face (compatible edges must match, e.g. "corridor-end can only neighbor corridor-end or room-entrance").
 - The grid is usually a 2D or 2.5D (multi-floor) grid rather than a single-plane texture.
 - Frequency weighting doubles as a design lever — e.g. weighting corridor modules low keeps generated layouts room-dense rather than maze-like.
-- [[Monoceros]] is the reference implementation this project targets for exactly this kind of module/slot/rule modeling inside Grasshopper.
+- **(Pivoted 2026-08-16)** [[Monoceros]] is no longer the reference implementation — under the Revit-native, in-process pivot, WFC is reimplemented natively in C#. This is simple enough to do directly and removes the last Grasshopper dependency (no Rhino.Inside.Revit bridge needed, since there's no Grasshopper layer left to bridge from). See [[Revit]] for the hosting architecture and [[CP-SAT]] for the solver alternative discussed below.
+
+## Hierarchical WFC (HWFC)
+
+For floorplan-scale problems, flat single-pass WFC scales poorly once it has to balance local wall alignment against long-range concerns like circulation. HWFC decomposes the solve into sequential, scale-dependent passes instead of one flat grid:
+
+1. **Structural pass** — envelope and cores on a coarse grid.
+2. **Spatial zoning pass** — programmatic regions (which rooms go roughly where).
+3. **Circulation pass** — corridors and egress paths traced between zones.
+4. **Detailing pass** — demising walls, doors, fixtures within the now-bounded rooms.
+
+Worth evaluating for room-solver once real floorplan sizes are known — a flat single-grid WFC/CP-SAT model may need this decomposition to stay tractable and to keep circulation from fighting local adjacency rules.
+
+## Open design question (raised 2026-08-16, not yet resolved — see the design doc)
+
+Gavin's framing: *"WFC seems to be a random-walk through a latent space that's potentially exhaustively delineable via constraint solving."* WFC's entropy-minimization + weighted-random tie-breaking is non-deterministic by construction — useful for organic variety, but arguably unnecessary friction in an architect-facing lock/re-solve UI where repeatability and explainability matter, especially now that [[CP-SAT]] is available in-process anyway. Whether the "collapse" step should stay stochastic-WFC, become CP-SAT-driven (exhaustive enumeration or an objective function), or some hybrid (WFC propagation for speed/preview, CP-SAT as the source of truth for what's actually possible at a cell) is an open question the design doc addresses directly — don't assume WFC "wins" just because it's already documented here.
+
+## Connectivity/egress repair pass
+
+Early WFC (or CP-SAT) tile/room decisions can isolate rooms with no valid door/egress path — neither solver inherently guarantees full connectivity. The production-proven mitigation: let the primary solver assign room zones and structural boundaries first, then run a **separate graph-traversal pass (BFS or Minimum Spanning Tree) over the resulting room-adjacency graph** to insert doors between isolated components (and prune redundant connections), rather than requiring the primary solver to guarantee connectivity itself. This applies regardless of which collapse strategy wins the open question above — CP-SAT doesn't get this for free either.
 
 ## Key gotchas
 
 - **Contradictions**: naive WFC can paint itself into a corner (a cell's domain becomes empty) and needs a backtrack or full restart. Because room-solver already restarts the whole solve on every lock, contradiction-handling is simpler here than in a typical live/incremental WFC UI — a contradiction just means "these locks are jointly unsatisfiable," surfaced as a solve failure rather than a partial-undo problem.
-- **Determinism vs. seed**: the same locked-cell set plus the same RNG seed always produces the same solve. Useful for reproducing/debugging a specific layout.
+- **Determinism vs. seed**: the same locked-cell set plus the same RNG seed always produces the same solve. Useful for reproducing/debugging a specific layout — and a point in favor of leaning more CP-SAT/deterministic per the open question above.
 - **Performance**: full-grid propagation on every lock is O(grid size × rule complexity) per lock, not free — worth profiling once the grid/tileset size for real floorplans is known.
+- **Isolation**: see the connectivity/egress repair pass above — don't assume a "successful" solve is a valid, egress-compliant one.
 
 ## References
 
